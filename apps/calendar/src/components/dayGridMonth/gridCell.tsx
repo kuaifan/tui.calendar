@@ -121,7 +121,10 @@ function getSeeMorePopupPosition(popupSize: RectSize, appContainerSize: Rect, ce
     top = containerBottom - popupHeight;
   }
 
-  return { top: top + window.scrollY, left: left + window.scrollX };
+  return {
+    top: top + window.scrollY - containerTop,
+    left: left + window.scrollX - containerLeft,
+  };
 }
 
 function getSeeMorePopupRect({

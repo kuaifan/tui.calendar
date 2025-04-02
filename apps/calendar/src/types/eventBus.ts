@@ -41,6 +41,7 @@ export type ExternalEventTypes = {
   clickEvent: (eventInfo: EventInfo) => void;
   clickMoreEventsBtn: (moreEventsBtnInfo: MoreEventsButton) => void;
   clickTimezonesCollapseBtn: (prevCollapsedState: boolean) => void;
+  layoutResized: (containerRect: DOMRect) => void;
   [eventName: string]: AnyFunc;
 };
 

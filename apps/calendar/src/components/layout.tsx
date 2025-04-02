@@ -10,6 +10,7 @@ import { SeeMoreEventsPopup } from '@src/components/popup/seeMoreEventsPopup';
 import { useDispatch } from '@src/contexts/calendarStore';
 import { LayoutContainerProvider } from '@src/contexts/layoutContainer';
 import { useTheme } from '@src/contexts/themeStore';
+import { useEventBus } from '@src/contexts/eventBus';
 import { cls, toPercent } from '@src/helpers/css';
 import { useDOMNode } from '@src/hooks/common/useDOMNode';
 import { commonThemeSelector } from '@src/selectors/theme';
@@ -51,6 +52,7 @@ export function Layout({
 
   const [container, containerRefCallback] = useDOMNode<HTMLDivElement>();
   const { setLastPanelType, updateLayoutHeight } = useDispatch('weekViewLayout');
+  const eventBus = useEventBus();
 
   const layoutClassName = useMemo(() => `${cls('layout')} ${className}`, [className]);
 
@@ -61,11 +63,19 @@ export function Layout({
       onResizeWindow();
       window.addEventListener('resize', onResizeWindow);
 
-      return () => window.removeEventListener('resize', onResizeWindow);
+      const resizeObserver = new ResizeObserver(() => {
+        return eventBus.fire('layoutResized', container.getBoundingClientRect());
+      });
+      resizeObserver.observe(container);
+
+      return () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', onResizeWindow);
+      };
     }
 
     return noop;
-  }, [container, updateLayoutHeight]);
+  }, [container, updateLayoutHeight, eventBus]);
 
   useLayoutEffect(() => {
     if (container && autoAdjustPanels) {

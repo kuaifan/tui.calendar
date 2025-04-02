@@ -12,6 +12,7 @@ import {
   MONTH_MORE_VIEW_PADDING,
 } from '@src/constants/style';
 import { useDispatch } from '@src/contexts/calendarStore';
+import { useEventBus } from '@src/contexts/eventBus';
 import { useLayoutContainer } from '@src/contexts/layoutContainer';
 import { useTheme } from '@src/contexts/themeStore';
 import { cls } from '@src/helpers/css';
@@ -22,6 +23,7 @@ import { monthMoreViewSelector } from '@src/selectors/theme';
 import type TZDate from '@src/time/date';
 import { isWeekend } from '@src/time/datetime';
 import { getSize } from '@src/utils/dom';
+import { noop } from '@src/utils/noop';
 
 import type { StyleProp } from '@t/components/common';
 import type { PopupPosition, Rect } from '@t/store';
@@ -146,31 +148,56 @@ function usePopupPosition(
   layoutContainer?: HTMLDivElement | null
 ) {
   const { width: moreViewWidth, height: moreViewHeight } = useTheme(monthMoreViewSelector);
+  const eventBus = useEventBus();
 
   const [container, containerRefCallback] = useDOMNode<HTMLDivElement>();
   const [popupPosition, setPopupPosition] = useState<PopupPosition | null>(null);
 
   useEffect(() => {
     if (layoutContainer && parentContainer && container) {
-      const popupSize = getSeeMorePopupSize({
-        grid: parentContainer,
-        offsetWidth: container.offsetWidth,
-        eventLength,
-        layerSize: {
-          width: moreViewWidth,
-          height: moreViewHeight,
-        },
-      });
+      const updatePosition = (): PopupPosition | null => {
+        const popupSize = getSeeMorePopupSize({
+          grid: parentContainer,
+          offsetWidth: container.offsetWidth,
+          eventLength,
+          layerSize: {
+            width: moreViewWidth,
+            height: moreViewHeight,
+          },
+        });
 
-      const rect = getSeeMorePopupRect({
-        cell: container,
-        layoutContainer,
-        popupSize,
-      });
+        const rect = getSeeMorePopupRect({
+          cell: container,
+          layoutContainer,
+          popupSize,
+        });
 
-      setPopupPosition(rect);
+        setPopupPosition(rect);
+
+        return rect;
+      };
+
+      // 初始计算位置
+      updatePosition();
+
+      // 订阅layoutResized事件，当布局容器大小变化时更新位置
+      eventBus.on('layoutResized', updatePosition);
+
+      return () => {
+        eventBus.off('layoutResized', updatePosition);
+      };
     }
-  }, [layoutContainer, container, eventLength, parentContainer, moreViewWidth, moreViewHeight]);
+
+    // 当layoutContainer或parentContainer不存在时不需要返回任何清理函数
+    return noop;
+  }, [
+    layoutContainer,
+    container,
+    eventLength,
+    parentContainer,
+    moreViewWidth,
+    moreViewHeight,
+    eventBus]);
 
   return { popupPosition, containerRefCallback };
 }

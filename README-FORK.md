@@ -5,7 +5,7 @@
 # 首次发布要 npm adduser
 # 修改 package.json 中的版本号
 cd apps/calendar
-npm instal
+npm install
 npm run build
 npm publish
 ```

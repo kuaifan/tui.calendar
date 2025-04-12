@@ -246,7 +246,17 @@ export function TimeEvent({
     },
     onPressESCKey: () => endDragEvent(classNames.moveEvent),
   });
+
+  const handleClick = (e: MouseEvent) => {
+    if (isReadOnlyCalendar) {
+      eventBus.fire('clickEvent', { event: uiModel.model.toEventObject(), nativeEvent: e });
+    }
+  };
+
   const handleMoveStart = (e: MouseEvent) => {
+    if (isReadOnlyCalendar) {
+      return;
+    }
     e.stopPropagation();
     onMoveStart(e);
   };
@@ -279,6 +289,7 @@ export function TimeEvent({
       data-event-id={id}
       className={classNames.time}
       style={{ ...containerStyle, ...customStyle }}
+      onClick={handleClick}
       onMouseDown={handleMoveStart}
       ref={eventContainerRef}
     >

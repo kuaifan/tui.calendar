@@ -217,7 +217,16 @@ export function HorizontalEvent({
     }
   };
 
+  const handleClick = (e: MouseEvent) => {
+    if (isReadOnlyCalendar) {
+      eventBus.fire('clickEvent', { event: uiModel.model.toEventObject(), nativeEvent: e });
+    }
+  };
+
   const handleMoveStart = (e: MouseEvent) => {
+    if (isReadOnlyCalendar) {
+      return;
+    }
     e.stopPropagation();
     onMoveStart(e);
   };
@@ -264,6 +273,7 @@ export function HorizontalEvent({
           backgroundColor: isDotEvent ? null : eventItemStyle.backgroundColor,
           borderLeft: isDotEvent ? null : eventItemStyle.borderLeft,
         }}
+        onClick={handleClick}
         onMouseDown={handleMoveStart}
       >
         {isDotEvent ? (
